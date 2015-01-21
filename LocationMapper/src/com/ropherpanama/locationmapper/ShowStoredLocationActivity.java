@@ -216,7 +216,7 @@ public class ShowStoredLocationActivity extends ListActivity {
 	
 	public void capturarManual(View v) {
 		LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-	    Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		location.setProvider("manual");
 		dbAdapter.addLocation(location);
 		Toast.makeText(getApplicationContext(), "Captura manual guardada", Toast.LENGTH_LONG).show();
