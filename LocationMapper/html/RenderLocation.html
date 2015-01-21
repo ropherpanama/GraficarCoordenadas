@@ -1,0 +1,292 @@
+<html>
+<head>
+<style type="text/css">
+   html, body {
+     height: 100%;
+     margin: 0;
+     padding: 0;
+   }
+   
+   #map_canvas {
+     height: 85%;
+   }
+</style>
+
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=true"></script>
+
+<script type="text/javascript">
+	var map, 
+		arrays, 
+		nextLine, 
+		ACCURACY = 50, 
+		GPS_COLOR = '#0174DF', 
+		NETWORK_COLOR = '#088A08', 
+		FUSED_COLOR = '#6E6E6E',
+		MANUAL_COLOR = '#FF8000',
+		PROXIMITY_ENTER_COLOR = '#00FF00', 
+		PROXIMITY_EXIT_COLOR = '#000000', 
+		STORED_COLOR = '#8800FF';
+	
+	function initialize() {
+		// Create an array of styles.
+		var styles = [{ featureType: "all", stylers: [ { saturation: -80 } ] },
+					  { featureType: "road.arterial", elementType: "geometry", stylers: [ { hue: "#00ffee" }, { saturation: 50 } ] },
+					  { featureType: "poi.business", elementType: "labels", stylers: [ { visibility: "off" } ] }
+		];
+
+		// Create a new StyledMapType object, passing it the array of styles,
+		// as well as the name to be displayed on the map type control.
+		var styledMap = new google.maps.StyledMapType(styles, {name: "Mapa Facsitio"});
+
+		var myOptions = {
+			zoom : 3,
+			center: new google.maps.LatLng(9.0071466,-79.4808152),
+			mapTypeId : google.maps.MapTypeId.ROADMAP,
+			mapTypeControlOptions: { mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'map_style'] }
+		};
+
+		map = new google.maps.Map(document.getElementById('map_canvas'), myOptions);
+		//map.setCenter(new google.maps.LatLng(OFFICE_LAT, OFFICE_LNG));
+			
+		//Associate the styled map with the MapTypeId and set it to display.
+		map.mapTypes.set('map_style', styledMap);
+		map.setMapTypeId('map_style');
+	}
+
+	function visualiseData() {
+		initialize();
+		//var dataType = getRadioValue();
+		var data = document.getElementById('data').value;
+		var dataArrays = splitData(data);
+		var bounds = new google.maps.LatLngBounds();
+		
+		if (data.length != 0) {
+			arrays = splitData(data);
+			if (document.dataForm.dataTypeGPS.checked === true) {
+				drawData(arrays.gps, GPS_COLOR,bounds);
+			} 
+			
+			if (document.dataForm.dataTypeNetwork.checked === true) {
+				drawData(arrays.network, NETWORK_COLOR, bounds);
+			}
+			
+			//if (document.dataForm.dataTypeProximity.checked === true) {
+			//	drawData(arrays.stored, STORED_COLOR, bounds);
+			//	drawProximityData(arrays.proximity, bounds);
+			//}
+			
+			if (document.dataForm.dataTypeFused.checked === true) {
+				drawData(arrays.fused, FUSED_COLOR, bounds);
+				//drawProximityData(arrays.fused, bounds);
+			}
+			
+			if (document.dataForm.dataTypeManual.checked === true) {
+				drawData(arrays.manual, MANUAL_COLOR, bounds);
+				//drawProximityData(arrays.manual, bounds);
+			}
+			
+			map.fitBounds(bounds);
+		} else { alert("No hay datos para graficar"); }
+	}
+
+	function getRadioValue() {
+		for ( var i=0; i < document.dataForm.dataType.length; i++ ){
+		   if (document.dataForm.dataType[i].checked) {
+				return document.dataForm.dataType[i].value;
+		   }
+		}
+	}
+	
+	function drawProximityData(data, bounds) {
+		for ( var i = 0; i < data.length; i++ ) {
+			var dataValues = data[i].split(',');
+			drawMarker(dataValues);
+			bounds.extend(new google.maps.LatLng(dataValues[0], dataValues[1]));
+			
+			if (i > 0){
+				previousValues = data[i-1].split(',');
+				var connectingCoordinates = [new google.maps.LatLng(dataValues[0], dataValues[1]),new google.maps.LatLng(previousValues[0], previousValues[1])];
+				drawConnectingLine(connectingCoordinates,'#000000');
+			}
+		}
+	}
+
+	function drawData(data, color, bounds) {
+		for ( var i = 0; i < data.length; i++ ) {
+			var dataValues = data[i].split(',');
+			//drawCircle(dataValues[0], dataValues[1], dataValues[2], color, 0.01, dataValues[4]);
+			drawCircle(dataValues[0], dataValues[1], dataValues[3], color, 0.01, dataValues[5]);
+			bounds.extend(new google.maps.LatLng(dataValues[0], dataValues[1]));
+			
+			if (i > 0){
+				previousValues = data[i-1].split(',');
+				var connectingCoordinates = [new google.maps.LatLng(dataValues[0], dataValues[1]),new google.maps.LatLng(previousValues[0], previousValues[1])];
+				drawConnectingLine(connectingCoordinates,color);
+			}
+		}
+	}
+
+	function splitData(data) {
+		var lineArray = data.split('\n');
+		var arrays = {
+			stored    : new Array(),
+			network   : new Array(),
+			gps       : new Array(),
+			proximity : new Array(), 
+			fused     : new Array(), 
+			manual    : new Array()
+		};
+
+		for ( var i = 0; i < lineArray.length; i++ ) {
+			var line = lineArray[i];
+			//var provider = line.split(',')[3];
+			var provider = line.split(',')[4];
+			//var accuracy = line.split(',')[2];
+			var accuracy = line.split(',')[3];
+			
+			switch (provider) {
+				case 'network':
+					arrays.network.push(line);
+					break;
+				case 'gps':
+					arrays.gps.push(line);
+					break;
+				case 'prx_enter':
+					arrays.proximity.push(line);
+					break;
+				case 'prx_exit':
+					arrays.proximity.push(line);
+					break;
+				case 'stored':
+					arrays.stored.push(line);
+					break;
+				case 'fused':
+					arrays.fused.push(line);
+					break;
+				case 'manual':
+					arrays.manual.push(line);
+					break;
+			}
+		}
+		return arrays;
+	}
+
+	function drawConnectingLine(connectingCoordinates, color) {
+	    //flecha de direccion
+        var lineSymbol = {
+			path: google.maps.SymbolPath.BACKWARD_OPEN_ARROW,//Conserva la direccion del recorrido
+			strokeColor : color,
+			strokeOpacity : 0.6
+		};
+
+		var line = new google.maps.Polyline({
+			path : connectingCoordinates,
+			icons: [{ icon: lineSymbol, offset: '50%' }],
+			strokeColor : color,
+			strokeOpacity : 0.6,
+			//strokeWeight : 1,
+			map: map
+		});
+	}
+
+	function drawMarker(dataValues) {
+		var image;
+		
+		//switch(dataValues[3]){
+		switch(dataValues[4]){
+			case 'prx_enter':
+				image = new google.maps.MarkerImage('images/proximity_enter.png', new google.maps.Size(14, 14),
+						new google.maps.Point(0, 0), new google.maps.Point(7, 7));
+				break;
+			case 'prx_exit':
+				image = new google.maps.MarkerImage('images/proximity_exit.png', new google.maps.Size(14, 14),
+						new google.maps.Point(0, 0), new google.maps.Point(7, 7));
+				break;
+		}
+		
+		var shadow = new google.maps.MarkerImage('images/shadow.png', new google.maps.Size(24, 14),
+				     new google.maps.Point(0, 0), new google.maps.Point(7, 7));
+
+		var shape = {
+			coord : [ 10, 3, 11, 4, 11, 5, 11, 6, 11, 7, 11, 8, 11, 9, 11, 10, 10, 11, 4, 11, 3, 10, 3, 9, 3, 8, 3, 7, 3, 6, 3, 5, 3, 4, 4, 3, 10, 3 ],
+			type : 'poly'
+		};
+
+		var marker = new google.maps.Marker({
+			draggable : false,
+			raiseOnDrag : false,
+			icon : image,
+			shadow : shadow,
+			shape : shape,
+			map : map,
+			//title: dataValues[4],
+			title: dataValues[5],
+			position : new google.maps.LatLng(dataValues[0], dataValues[1])
+		});
+	}
+
+	function drawCircle(latitude, longitude, accuracy, color, fillOpacity, text) {
+
+		var image = new google.maps.MarkerImage('Images/image.png', new google.maps.Size(12, 12),
+				    new google.maps.Point(0, 0), new google.maps.Point(7, 7));
+
+		var shadow = new google.maps.MarkerImage('Images/shadow.png', new google.maps.Size(24, 14),
+				     new google.maps.Point(0, 0), new google.maps.Point(7, 7));
+
+		var shape = {
+			coord : [ 10, 3, 11, 4, 11, 5, 11, 6, 11, 7, 11, 8, 11, 9, 11, 10, 10, 11, 4, 11, 3, 10, 3, 9, 3, 8, 3, 7, 3, 6, 3, 5, 3, 4, 4, 3, 10, 3 ],
+			type : 'poly'
+		};
+
+		var marker = new google.maps.Marker({
+			draggable   : false,
+			raiseOnDrag : false,
+			icon        : image,
+			shadow      : shadow,
+			shape       : shape,
+			map         : map,
+			title       : text,
+			position    : new google.maps.LatLng(latitude, longitude)
+		});
+
+		var circle = new google.maps.Circle({
+			map           : map,
+			radius        : parseInt(accuracy),
+			fillColor     : color,
+			fillOpacity   : fillOpacity,
+			strokeWeight  : 1,
+			strokeOpacity : 0.8,
+			strokeColor   : color
+		});
+		
+		circle.bindTo('center', marker, 'position');
+	}
+
+	google.maps.event.addDomListener(window, 'load', initialize);
+	
+</script>
+
+</head>
+<body>
+	<p style="margin: 10px;">Pegar el contenido del fichero generado por la aplicación y presionar el botón Dibujar.
+	<form name="dataForm" action="" method="POST">
+		<div style="float: left; margin: 10px">
+<textarea id="data" style="width: 500px; height: 75px;" >
+9.0071466,-79.4808152,2981,gps,14:25:54
+9.0105062,-79.4743145,78,fused,14:25:54
+9.0071466,-79.4808152,2981,network,14:26:54
+9.0105062,-79.4743145,78,manual,14:27:54
+</textarea>
+		</div>
+		<div style="margin: 10px;">
+			<input type="checkbox" name="dataTypeGPS" checked="checked"><span style='color:#0174DF;'>Ver capturas GPS</span><br /> 
+			<input type="checkbox" name="dataTypeNetwork" ><span style='color:#088A08;'>Ver capturas de red</span><br /> 
+			<input type="checkbox" name="dataTypeFused" ><span style='color:#6E6E6E;'>Ver capturas pasivas</span><br /> 
+			<input type="checkbox" name="dataTypeManual" ><span style='color:#FF8000;'>Ver capturas manuales</span><br /> 
+			<!-- <input type="checkbox" name="dataTypeProximity">Mostrar alertas de proximidad<br />  -->
+			<input type="submit" value="Dibujar" onClick="visualiseData(); return false;">
+		</div>
+	</form> <p>
+	<div id="map_canvas" style="margin: 10px;"></div>
+</body>
+</html>

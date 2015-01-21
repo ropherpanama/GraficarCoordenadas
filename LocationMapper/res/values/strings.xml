@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Location Mapper</string>
+    <string name="settings">Settings</string>
+    <string name="mailer">Enviar datos</string>
+    <string name="start">Iniciar</string>
+    <string name="stop">Detener</string>
+    <string name="get">Capturar</string>
+    <string name="borrarDb">Borrar Db</string>
+</resources>

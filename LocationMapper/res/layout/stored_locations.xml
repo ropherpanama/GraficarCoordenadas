@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/linearLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TableLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TableRow
+            android:id="@+id/headerRow"
+            android:layout_height="match_parent"
+            android:background="#2374b6" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginRight="1dp"
+                android:layout_weight="1"
+                android:background="#5CB7F0"
+                android:gravity="center_horizontal"
+                android:text="Name"
+                android:textColor="#FFFFFF" >
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginRight="1dp"
+                android:layout_weight="1"
+                android:background="#5CB7F0"
+                android:gravity="center_horizontal"
+                android:text="Lat"
+                android:textColor="#FFFFFF" >
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginRight="1dp"
+                android:layout_weight="1"
+                android:background="#5CB7F0"
+                android:gravity="center_horizontal"
+                android:text="Lng"
+                android:textColor="#FFFFFF" >
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginRight="1dp"
+                android:layout_weight="1"
+                android:background="#5CB7F0"
+                android:gravity="center_horizontal"
+                android:text="Alt"
+                android:textColor="#FFFFFF" >
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginRight="1dp"
+                android:layout_weight="1"
+                android:background="#5CB7F0"
+                android:gravity="center_horizontal"
+                android:text="Time"
+                android:textColor="#FFFFFF" >
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_weight="1"
+                android:background="#5CB7F0"
+                android:gravity="center_horizontal"
+                android:text="Acc"
+                android:textColor="#FFFFFF" >
+            </TextView>
+        </TableRow>
+    </TableLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal" >
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="iniciarServicio"
+            android:text="@string/start" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="detenerServicio"
+            android:text="@string/stop" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="capturarManual"
+            android:text="@string/get" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onClearDataBase"
+            android:text="@string/borrarDb" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@android:id/android:list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
+
+</LinearLayout>
